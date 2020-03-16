@@ -8,8 +8,8 @@ public class ClassInput extends CsvInput {
 
     private final String className;
 
-    public ClassInput(String packagePath, String className) {
-        super(packagePath);
+    public ClassInput(String packagePath, String outerClass, String className) {
+        super(packagePath, outerClass);
         this.className = className;
     }
 

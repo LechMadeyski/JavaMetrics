@@ -5,14 +5,15 @@ import java.util.Objects;
 
 public class MethodInput extends CsvInput {
 
-    public static final String METHOD_TYPE = "function";
+    public static final String METHOD_TYPE = "method";
+    public static final String CONSTRUCTOR_TYPE = "constructor";
 
     private final String className;
     private final String methodName;
     private List<String> arguments;
 
-    public MethodInput(String packagePath, String className, String methodName, List<String> arguments) {
-        super(packagePath);
+    public MethodInput(String packagePath, String outerClass, String className, String methodName, List<String> arguments) {
+        super(packagePath, outerClass);
         this.className = className;
         this.methodName = methodName;
         this.arguments = arguments;

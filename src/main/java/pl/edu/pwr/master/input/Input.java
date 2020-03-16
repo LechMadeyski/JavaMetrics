@@ -21,9 +21,8 @@ public class Input {
 
     public boolean containsClass(String packageName, String outerClassName, String className) {
         for (ClassInput classInput : classes) {
-            String inputOuterClassName = classInput.getLastPackageElement();
-            if (inputOuterClassName.equals(outerClassName)) {
-                if (classInput.getPackageWithoutLastElement().equals(packageName) && classInput.getClassName().equals(className))
+            if (!outerClassName.isBlank()) {
+                if (classInput.getPackagePath().equals(packageName) && classInput.getClosestOuterClass().equals(outerClassName) && classInput.getClassName().equals(className))
                     return true;
             } else {
                 if (classInput.getPackagePath().equals(packageName) && classInput.getClassName().equals(className))
@@ -49,9 +48,8 @@ public class Input {
 
     public boolean containsMethod(String packageName, String outerClassName, String className, String methodName, List<String> arguments) {
         for (MethodInput methodInput : methods) {
-            String inputOuterClassName = methodInput.getLastPackageElement();
-            if (inputOuterClassName.equals(outerClassName)) {
-                if (methodInput.getPackageWithoutLastElement().equals(packageName) && methodInput.getClassName().equals(className) && methodInput.getMethodName().equals(methodName)) {
+            if (!outerClassName.isBlank()) {
+                if (methodInput.getPackagePath().equals(packageName) && methodInput.getClosestOuterClass().equals(outerClassName) && methodInput.getClassName().equals(className) && methodInput.getMethodName().equals(methodName)) {
                     return hasTheSameArguments(arguments, methodInput.getArguments());
                 }
             } else {
@@ -65,9 +63,8 @@ public class Input {
 
     public boolean containsMethod(String packageName, String outerClassName, String className, String methodName) {
         for (MethodInput methodInput : methods) {
-            String inputOuterClassName = methodInput.getLastPackageElement();
-            if (inputOuterClassName.equals(outerClassName)) {
-                if (methodInput.getPackageWithoutLastElement().equals(packageName) && methodInput.getClassName().equals(className) && methodInput.getMethodName().equals(methodName)) {
+            if (!outerClassName.isBlank()) {
+                if (methodInput.getPackagePath().equals(packageName) && methodInput.getClosestOuterClass().equals(outerClassName) && methodInput.getClassName().equals(className) && methodInput.getMethodName().equals(methodName)) {
                     return true;
                 }
             } else {

@@ -1,5 +1,14 @@
-# JavaMetrics
-JavaMetrics tool calculates a set of software metrics that may be useful to measure software quality and/or to use as predictors in software defect or code smell prediction models.
+# Master's thesis project
+
+[![Build Status](https://travis-ci.com/LechMadeyski/MSc19Ziobrowski.svg?token=qs9yYckNzrTfMLp1s1Cf&branch=master)](https://travis-ci.com/LechMadeyski/MSc19Ziobrowski)
+
+## Systematic literature review
+
+_Search string_ for SLR in Scopus:
+`TITLE-ABS-KEY(metrics  OR  metric) AND TITLE-ABS-KEY("software quality") AND TITLE-ABS-KEY(java) AND (LIMIT-TO(SUBJAREA,  "COMP"))`.
+
+## JavaMetrics tool
+JavaMetrics is a tool developed for derivation of software qualtity metrics from the source code. It bases on the Abstract Syntax Tree traversal.
 
 ### Usage
 Before using JavaMetrics make sure you have the latest jar file available. If you do not have one, you can build it yourself with Maven.

@@ -4,7 +4,8 @@ package pl.edu.pwr.master.input;
  * CSV Headers for the input file.
  */
 public enum CsvHeaders {
-    ID("id"), TYPE("type"), CODE_NAME("code_name"), REPOSITORY("repository"), COMMIT_HASH("commit_hash");
+    TYPE("TYPE"), PACKAGE("PACKAGE"), OUTER_CLASS("OUTER_CLASS"), CLASS("CLASS"), METHOD("METHOD"), PARAMETERS("PARAMETERS"),
+    REPOSITORY("REPOSITORY"), COMMIT_HASH("COMMIT_HASH"), GIT_SOURCE_FILE_URL("GIT_SOURCE_FILE_URL");
 
     private String header;
 

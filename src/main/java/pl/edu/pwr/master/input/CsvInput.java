@@ -5,31 +5,24 @@ import java.util.Objects;
 public class CsvInput {
 
     private final String packagePath;
+    private final String outerClass;
 
-    public CsvInput(String packagePath) {
+    public CsvInput(String packagePath, String outerClass) {
         this.packagePath = packagePath;
+        this.outerClass = outerClass;
     }
 
-    public String getLastPackageElement() {
-        String[] split = this.getPackagePath().split("\\.");
+    public String getClosestOuterClass() {
+        String[] split = this.getOuterClass().split("\\.");
         return split[split.length - 1];
-    }
-
-    public String getPackageWithoutLastElement() {
-        String[] split = this.getPackagePath().split("\\.");
-        StringBuilder sb = new StringBuilder("");
-
-        for (int i = 0; i < split.length - 1; i++) {
-            sb.append(split[i]);
-            sb.append(".");
-        }
-
-        String out = sb.toString();
-        return out.substring(0, out.length() - 1);
     }
 
     public String getPackagePath() {
         return packagePath;
+    }
+
+    public String getOuterClass() {
+        return outerClass;
     }
 
     @Override
@@ -37,11 +30,12 @@ public class CsvInput {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         CsvInput csvInput = (CsvInput) o;
-        return Objects.equals(packagePath, csvInput.packagePath);
+        return Objects.equals(packagePath, csvInput.packagePath) &&
+                Objects.equals(outerClass, csvInput.outerClass);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(packagePath);
+        return Objects.hash(packagePath, outerClass);
     }
 }

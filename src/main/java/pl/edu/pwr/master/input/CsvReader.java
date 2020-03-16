@@ -36,76 +36,16 @@ public class CsvReader {
 
             records.forEach(r -> {
                 String type = r.get(CsvHeaders.TYPE);
-                String codeName = r.get(CsvHeaders.CODE_NAME);
-
-                if (LOGGER.isLoggable(Level.INFO))
-                    LOGGER.info("Parsing " + r);
+                String packageName = r.get(CsvHeaders.PACKAGE);
+                String outerClass = r.get(CsvHeaders.OUTER_CLASS);
+                String className = r.get(CsvHeaders.CLASS);
+                String methodName = r.get(CsvHeaders.METHOD);
+                List<String> parameters = Arrays.asList(r.get(CsvHeaders.PARAMETERS).split("\\|"));
 
                 if (type.equals(ClassInput.CLASS_TYPE)) {
-
-                    String packageName = "";
-                    String className = "";
-                    if (codeName.contains(".")) {
-                        packageName = extractPackageName(codeName);
-                        className = extractClassName(codeName);
-                    } else {
-                        className = codeName;
-                    }
-                    classes.add(new ClassInput(packageName, className));
-                } else if (type.equals(MethodInput.METHOD_TYPE)) {
-                    if (codeName.contains("#")) { // logic for methods
-                        String[] codeNameSplit = codeName.split("#"); // # is the method delimiter
-                        String packageNameWithClass = codeNameSplit[0];
-
-                        String packageName = "";
-                        String className = "";
-
-                        if (existsPackageInMethod(packageNameWithClass)) {
-                            packageName = extractPackageName(packageNameWithClass);
-                            className = extractClassName(packageNameWithClass);
-                        } else {
-                            className = packageNameWithClass;
-                        }
-
-                        String[] methodWithArgsSplit = codeNameSplit[1].split(" "); // ' ' is the delimiter between method name and args
-
-                        String methodName = methodWithArgsSplit[0];
-
-                        List<String> arguments = new ArrayList<>();
-                        if (codeNameSplit[1].contains(" "))
-                            arguments = Arrays.asList(methodWithArgsSplit[1].split("\\|"));
-
-                        methods.add(new MethodInput(packageName, className, methodName, arguments));
-                    } else { // logic for constructors
-                        String[] constructorSplit = codeName.split(" ");
-                        String packageName = "";
-                        String className = "";
-                        String constructorName = "";
-
-                        if (existsPackageInConstructor(constructorSplit[0])) {
-                            String[] codeNameSplit = constructorSplit[0].split("\\."); // . is the delimiter between elements in a package
-                            StringBuilder sb = new StringBuilder();
-                            for (int i = 0; i < codeNameSplit.length - 2; i++) {
-                                sb.append(codeNameSplit[i]);
-                                sb.append('.');
-                            }
-
-                            packageName = sb.toString();
-                            packageName = packageName.substring(0, packageName.length() - 1);
-
-                            className = codeNameSplit[codeNameSplit.length - 2];
-                            constructorName = codeNameSplit[codeNameSplit.length - 1];
-                        } else {
-                            String[] codeNameSplit = constructorSplit[0].split("\\.");
-                            className = codeNameSplit[0];
-                            constructorName = codeNameSplit[1];
-                        }
-                        List<String> arguments = new ArrayList<>();
-                        if (codeName.contains(" "))
-                            arguments = Arrays.asList(constructorSplit[1].split("\\|"));
-
-                        methods.add(new MethodInput(packageName, className, constructorName, arguments));
-                    }
+                    classes.add(new ClassInput(packageName, outerClass, className));
+                } else if (type.equals(MethodInput.METHOD_TYPE) || type.equals(MethodInput.CONSTRUCTOR_TYPE)) {
+                    methods.add(new MethodInput(packageName, outerClass, className, methodName, parameters));
                 } else {
                     if (LOGGER.isLoggable(Level.INFO)) {
                         LOGGER.info("Found unknown value " + type + " in column 'type'!");
@@ -117,34 +57,6 @@ public class CsvReader {
         }
 
         return new Input(new ArrayList<>(classes), new ArrayList<>(methods));
-    }
-
-    private static String extractPackageName(String codeName) {
-        String[] codeNameSplit = codeName.split("\\."); // . is the delimiter between elements in a package
-
-        StringBuilder sb = new StringBuilder();
-        for (int i = 0; i < codeNameSplit.length - 1; i++) {
-            sb.append(codeNameSplit[i]);
-            sb.append('.');
-        }
-
-        String packageName = sb.toString();
-        packageName = packageName.substring(0, packageName.length() - 1);
-
-        return packageName;
-    }
-
-    private static String extractClassName(String codeName) {
-        String[] codeNameSplit = codeName.split("\\."); // . is the delimiter between elements in a package
-        return codeNameSplit[codeNameSplit.length - 1];
-    }
-
-    private static boolean existsPackageInMethod(String codeName) {
-        return codeName.contains(".");
-    }
-
-    private static boolean existsPackageInConstructor(String codeName) {
-        return (codeName.length() - codeName.replace(".", "").length()) > 1;
     }
 
     /**

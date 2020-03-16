@@ -1,4 +1,4 @@
-id,type,code_name
-1,function,org.test.package.Class#method arg1|arg2|arg3
-2,function,org.test.package.Class.Class
-3,class,org.test.package.Class
+TYPE,PACKAGE,OUTER_CLASS,CLASS,METHOD,PARAMETERS,REPOSITORY,COMMIT_HASH,GIT_SOURCE_FILE_URL
+method,org.test.package,,Class,method,arg1|arg2|arg3,test,test,test
+constructor,org.test.package,,Class,Class,,test,test,test
+class,org.test.package,,Class,,,test,test,test
