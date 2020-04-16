@@ -23,7 +23,7 @@ public class CsvProcessor {
         fileLocation = prepareFileLocation(fileLocation);
 
         if (LOGGER.isLoggable(Level.INFO))
-            LOGGER.info(String.format("Writing output to: %s", fileLocation));
+            LOGGER.info(String.format("Writing output from project (%s) to: %s", projectName, fileLocation));
 
         Collections.sort(metricNames);
 

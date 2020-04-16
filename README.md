@@ -91,4 +91,7 @@ Here is an extended summary of flags available in JavaMetrics tool.
     ```
 * `-l`  
     Turn on logging. Logs from the JavaMetrics will be available on the standard output.
+* `-deps`  
+    **EXPERIMENTAL**  
+    Turn on dependency parsing. Every project that contains `pom.xml` file will have its dependencies downloaded (target director is `$HOME/java-metrics-dependencies`) and added to the configuration. The output CSV file will contain values for metrics requiring dependencies.
 

@@ -37,6 +37,7 @@ public class MetricGenerator {
     }
 
     public List<String> getMetricStrategyNames() {
-        return strategies.stream().map(MetricStrategy::getName).collect(Collectors.toList());
+        //return strategies.stream().map(MetricStrategy::getName).collect(Collectors.toList());
+        return MetricGeneratorBuilder.getAllMetricNames();
     }
 }

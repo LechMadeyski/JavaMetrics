@@ -25,6 +25,7 @@ public class App {
     private static final String LOGGING_OPTION = "l";
     private static final String DOWNLOAD_OPTION = "d";
     private static final String DOWNLOAD_ONLY_OPTION = "downloadonly";
+    private static final String DEPENDENCY_PARSING_OPTION = "deps";
 
     public static void main(String[] args) throws IOException, ParseException {
         Options options = prepareOptions();
@@ -39,7 +40,7 @@ public class App {
             }
 
             if (!line.hasOption(LOGGING_OPTION)) {
-                LogManager.getLogManager().getLogger("").setLevel(Level.SEVERE);
+                LogManager.getLogManager().getLogger("").setLevel(Level.WARNING);
             } else {
                 LogManager.getLogManager().getLogger("").setLevel(Level.INFO);
             }
@@ -80,13 +81,18 @@ public class App {
                     inputPath = GitDownloader.DEFAULT_OUTPUT_REPOSITORY_DIR;
             }
 
+            boolean parseDependencies = false;
+
+            if (line.hasOption(DEPENDENCY_PARSING_OPTION))
+                parseDependencies = true;
+
             if (line.hasOption(CSV_OPTION)) {
                 Input input = CsvReader.getInputToParse(line.getOptionValue(CSV_OPTION));
                 new MetricsRunner(inputPath,
-                        line.getOptionValue(OUTPUT_FILE_OPTION, "output.csv"), input);
+                        line.getOptionValue(OUTPUT_FILE_OPTION, "output.csv"), input, parseDependencies);
             } else {
                 new MetricsRunner(inputPath,
-                        line.getOptionValue(OUTPUT_FILE_OPTION, "output.csv"));
+                        line.getOptionValue(OUTPUT_FILE_OPTION, "output.csv"), parseDependencies);
             }
         } catch (org.apache.commons.cli.ParseException ex) {
             System.err.println(ex.getMessage());
@@ -139,6 +145,8 @@ public class App {
         Option downloadOption = new Option(DOWNLOAD_OPTION, "turn on sources download before parsing");
         Option downloadOnlyOption = new Option(DOWNLOAD_ONLY_OPTION, "turn on only sources download");
 
+        Option dependencyParsingOption = new Option(DEPENDENCY_PARSING_OPTION, "[EXPERIMENTAL] turn on dependency parsing");
+
         options.addOptionGroup(inputOptionGroup);
         options.addOption(gitSourcesOutputDirectoryOption);
         options.addOption(outputFileOption);
@@ -146,6 +154,7 @@ public class App {
         options.addOption(loggingOption);
         options.addOption(downloadOption);
         options.addOption(downloadOnlyOption);
+        options.addOption(dependencyParsingOption);
         return options;
     }
 }

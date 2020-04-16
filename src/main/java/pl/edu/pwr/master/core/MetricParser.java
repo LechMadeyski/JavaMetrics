@@ -8,6 +8,8 @@ import com.github.javaparser.ast.CompilationUnit;
 import com.github.javaparser.symbolsolver.JavaSymbolSolver;
 import com.github.javaparser.symbolsolver.model.resolution.TypeSolver;
 import com.github.javaparser.symbolsolver.resolution.typesolvers.CombinedTypeSolver;
+import com.github.javaparser.symbolsolver.resolution.typesolvers.JarTypeSolver;
+import com.github.javaparser.symbolsolver.resolution.typesolvers.JavaParserTypeSolver;
 import com.github.javaparser.symbolsolver.resolution.typesolvers.ReflectionTypeSolver;
 import pl.edu.pwr.master.core.model.Metric;
 import pl.edu.pwr.master.input.Input;
@@ -22,7 +24,9 @@ import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.logging.Level;
 import java.util.logging.Logger;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 public class MetricParser {
@@ -41,27 +45,36 @@ public class MetricParser {
         this.input = getEmptyInput();
     }
 
-    public MetricParser(MetricGenerator metricGenerator, String outputFilename) {
+    public MetricParser(MetricGenerator metricGenerator, String projectPath, String outputFilename) {
         this.metricGenerator = metricGenerator;
         this.csvReporter = new CsvReporter(outputFilename);
-        this.javaParser = prepareParser();
+        this.javaParser = prepareParser(projectPath);
         this.input = getEmptyInput();
     }
 
-    public MetricParser(MetricGenerator metricGenerator, String outputFilename, Input input) {
+    public MetricParser(MetricGenerator metricGenerator, String projectPath, String dependencyPath, String outputFilename) {
         this.metricGenerator = metricGenerator;
         this.csvReporter = new CsvReporter(outputFilename);
-        this.javaParser = prepareParser();
+        this.javaParser = prepareParser(projectPath, dependencyPath);
+        this.input = getEmptyInput();
+    }
+
+    public MetricParser(MetricGenerator metricGenerator, String projectPath, String outputFilename, Input input) {
+        this.metricGenerator = metricGenerator;
+        this.csvReporter = new CsvReporter(outputFilename);
+        this.javaParser = prepareParser(projectPath);
+        this.input = input;
+    }
+
+    public MetricParser(MetricGenerator metricGenerator, String projectPath, String dependencyPath, String outputFilename, Input input) {
+        this.metricGenerator = metricGenerator;
+        this.csvReporter = new CsvReporter(outputFilename);
+        this.javaParser = prepareParser(projectPath, dependencyPath);
         this.input = input;
     }
 
     private JavaParser prepareParser() {
-        CombinedTypeSolver typeSolver = new CombinedTypeSolver();
-
-        TypeSolver reflectionTypeSolver = new ReflectionTypeSolver();
-        reflectionTypeSolver.setParent(reflectionTypeSolver);
-        typeSolver.add(reflectionTypeSolver);
-
+        CombinedTypeSolver typeSolver = prepareBaseCombinedTypeSolver();
         JavaSymbolSolver javaSymbolSolver = new JavaSymbolSolver(typeSolver);
 
         ParserConfiguration parserConfiguration =
@@ -70,6 +83,89 @@ public class MetricParser {
                         .setSymbolResolver(javaSymbolSolver);
 
         return new JavaParser(parserConfiguration);
+    }
+
+    private JavaParser prepareParser(String projectPath) {
+        CombinedTypeSolver typeSolver = prepareBaseCombinedTypeSolver(projectPath);
+        JavaSymbolSolver javaSymbolSolver = new JavaSymbolSolver(typeSolver);
+
+        ParserConfiguration parserConfiguration =
+                new ParserConfiguration()
+                        .setAttributeComments(false)
+                        .setSymbolResolver(javaSymbolSolver);
+
+        return new JavaParser(parserConfiguration);
+    }
+
+    private JavaParser prepareParser(String projectPath, String dependencyPath) {
+        CombinedTypeSolver typeSolver = prepareBaseCombinedTypeSolver(projectPath);
+
+        registerJarTypeSolvers(dependencyPath, typeSolver);
+        JavaSymbolSolver javaSymbolSolver = new JavaSymbolSolver(typeSolver);
+
+        ParserConfiguration parserConfiguration =
+                new ParserConfiguration()
+                        .setAttributeComments(false)
+                        .setSymbolResolver(javaSymbolSolver);
+
+        return new JavaParser(parserConfiguration);
+    }
+
+    private void registerJavaParserTypeSolvers(String projectPath, CombinedTypeSolver typeSolver) {
+        try (Stream<Path> walk = Files.walk(Paths.get(projectPath))) {
+
+            List<String> result = walk.filter(Files::isDirectory).map(Path::toString)
+                    .filter(f -> f.endsWith("src/main/java") || f.endsWith("src/test/java")).collect(Collectors.toList());
+
+            result.forEach(r -> {
+                LOGGER.info("Registering project package: " + r);
+                typeSolver.add(new JavaParserTypeSolver(r));
+            });
+
+        } catch (IOException e) {
+            LOGGER.log(Level.SEVERE, e.getMessage(), e);
+        }
+    }
+
+
+    private void registerJarTypeSolvers(String dependencyPath, CombinedTypeSolver typeSolver) {
+        try (Stream<Path> walk = Files.walk(Paths.get(dependencyPath))) {
+
+            List<String> result = walk.map(Path::toString)
+                    .filter(f -> f.endsWith(".jar")).collect(Collectors.toList());
+
+            result.forEach(path -> {
+                try {
+                    LOGGER.info("Registering " + path);
+                    typeSolver.add(new JarTypeSolver(path));
+                } catch (IOException e) {
+                    LOGGER.log(Level.SEVERE, e.getMessage(), e);
+                }
+            });
+
+        } catch (IOException e) {
+            LOGGER.log(Level.SEVERE, e.getMessage(), e);
+        }
+    }
+
+    private CombinedTypeSolver prepareBaseCombinedTypeSolver() {
+        CombinedTypeSolver typeSolver = new CombinedTypeSolver();
+
+        TypeSolver reflectionTypeSolver = new ReflectionTypeSolver();
+        typeSolver.add(reflectionTypeSolver);
+
+        return typeSolver;
+    }
+
+    private CombinedTypeSolver prepareBaseCombinedTypeSolver(String projectPath) {
+        CombinedTypeSolver typeSolver = new CombinedTypeSolver();
+
+        TypeSolver reflectionTypeSolver = new ReflectionTypeSolver();
+        typeSolver.add(reflectionTypeSolver);
+
+        registerJavaParserTypeSolvers(projectPath, typeSolver);
+
+        return typeSolver;
     }
 
     private Input getEmptyInput() {
@@ -91,13 +187,20 @@ public class MetricParser {
         try (Stream<Path> walk = Files.walk(Paths.get(directory))) {
             walk.map(Path::toFile)
                     .filter(f -> f.getName().endsWith(".java"))
-                    .forEach(this::tryToParse);
+                    .forEach(f -> {
+                        try {
+                            tryToParse(f);
+                        } catch (Exception e) {
+                            LOGGER.log(Level.SEVERE, e.getMessage(), e);
+                        }
+                    });
         } catch (IOException e) {
-            LOGGER.severe(e.getMessage());
+            LOGGER.log(Level.SEVERE, e.getMessage(), e);
         }
     }
 
     private void tryToParse(File file) {
+        LOGGER.info("Trying to parse " + file.getPath());
         try {
             CompilationUnit compilationUnit = parseFile(file);
 
