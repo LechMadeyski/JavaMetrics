@@ -6,11 +6,16 @@ import pl.edu.pwr.master.input.Input;
 
 import java.io.File;
 import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
+import java.util.logging.Level;
 import java.util.logging.Logger;
+import java.util.stream.Stream;
 
 public class MetricsRunner {
 
@@ -28,7 +33,14 @@ public class MetricsRunner {
     }
 
     public void metricSuite(String path, String outputFilename) throws IOException, ParseException {
-        List<String> projectPaths = getProjectPaths(path);
+        List<String> projectPaths = new ArrayList<>();
+
+        if (containsOnlyJavaFiles(path)) {
+            projectPaths.add(path);
+        }
+        else {
+            projectPaths = getProjectPaths(path);
+        }
 
         for (String p : projectPaths) {
 
@@ -119,6 +131,21 @@ public class MetricsRunner {
 
         String[] split = path.split("/");
         return split[split.length - 1];
+    }
+
+    protected boolean containsOnlyJavaFiles(String path) throws IOException {
+        long count = 0;
+        try (Stream<Path> files = Files.list(Paths.get(path))) {
+            count = files.count();
+        }
+
+        long javaFilesCount = 0;
+        try (Stream<Path> walk = Files.walk(Paths.get(path))) {
+            javaFilesCount = walk.map(Path::toFile)
+                    .filter(f -> f.getName().endsWith(".java")).count();
+        }
+
+        return count == javaFilesCount;
     }
 
     protected ArrayList<String> getProjectPaths(String path) {
