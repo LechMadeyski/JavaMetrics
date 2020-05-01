@@ -41,7 +41,7 @@ public class MavenDependencyDownloader {
         PomXmlParser pomXmlParser = new PomXmlParser();
         boolean hasModifiedPom = false;
         try {
-            hasModifiedPom = pomXmlParser.parsePom(pomPath, outputPath);
+            hasModifiedPom = pomXmlParser.parsePom(pomPath + "/" + POM_NAME, outputPath);
         }
         catch (ParserConfigurationException | SAXException e) {
             LOGGER.log(Level.SEVERE, e.getMessage(), e);
@@ -65,7 +65,7 @@ public class MavenDependencyDownloader {
 
         if (hasModifiedPom) {
             LOGGER.info("Moving pom.xml from backup...");
-            pomXmlParser.getPomFromBackup(pomPath);
+            pomXmlParser.getPomFromBackup(pomPath + "/" + POM_NAME);
         }
 
         return exitCode == 0;
