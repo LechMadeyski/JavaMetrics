@@ -1,6 +1,9 @@
 package pl.edu.pwr.master.downloader.maven;
 
 
+import org.xml.sax.SAXException;
+
+import javax.xml.parsers.ParserConfigurationException;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.IOException;
@@ -33,6 +36,18 @@ public class MavenDependencyDownloader {
         clearExistingJars(this.outputPath);
 
         if (LOGGER.isLoggable(Level.INFO))
+            LOGGER.info("Preparing pom.xml...");
+
+        PomXmlParser pomXmlParser = new PomXmlParser();
+        boolean hasModifiedPom = false;
+        try {
+            hasModifiedPom = pomXmlParser.parsePom(pomPath, outputPath);
+        }
+        catch (ParserConfigurationException | SAXException e) {
+            LOGGER.log(Level.SEVERE, e.getMessage(), e);
+        }
+
+        if (LOGGER.isLoggable(Level.INFO))
             LOGGER.info("Downloading dependencies...");
 
         ProcessBuilder pb = new ProcessBuilder("mvn", "dependency:copy-dependencies", "-DoutputDirectory=" + outputPath);
@@ -47,6 +62,11 @@ public class MavenDependencyDownloader {
         process.destroy();
         if (LOGGER.isLoggable(Level.INFO))
             LOGGER.info(String.format("Download process exited with code %d. You can find the downloaded dependencies in %s.", exitCode, outputPath));
+
+        if (hasModifiedPom) {
+            LOGGER.info("Moving pom.xml from backup...");
+            pomXmlParser.getPomFromBackup(pomPath);
+        }
 
         return exitCode == 0;
     }
