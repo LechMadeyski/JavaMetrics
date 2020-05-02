@@ -37,12 +37,18 @@ public class PomXmlParser {
         Document document = builder.parse(new File(pomPath));
 
         NodeList nodes = document.getElementsByTagName("plugins");
+        if (nodes.getLength() == 0)
+            return false;
         Element element = (Element) nodes.item(0);
 
         NodeList plugins = element.getElementsByTagName("plugin");
         for (int i = 0; i < plugins.getLength(); i++) {
             Element e = (Element) plugins.item(i);
-            String artifactId = ((Element) e.getElementsByTagName("artifactId").item(0)).getFirstChild().getTextContent();
+            NodeList artifactsIdList = e.getElementsByTagName("artifactId");
+            if (artifactsIdList.getLength() == 0)
+                continue;
+
+            String artifactId = ((Element) artifactsIdList.item(0)).getFirstChild().getTextContent();
             if (artifactId.equals(MAVEN_DEPENDENCY_PLUGIN_NAME)) {
                 NodeList configuration = e.getElementsByTagName("configuration");
                 if (configuration.getLength() > 0) {
