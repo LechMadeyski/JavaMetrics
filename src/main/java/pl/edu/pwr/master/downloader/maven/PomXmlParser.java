@@ -34,7 +34,13 @@ public class PomXmlParser {
         DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
         DocumentBuilder builder = factory.newDocumentBuilder();
 
-        Document document = builder.parse(new File(pomPath));
+        File f = new File(pomPath);
+        if (! f.exists()) {
+            LOGGER.severe(pomPath + " does not exist!");
+            return false;
+        }
+
+        Document document = builder.parse(f);
 
         NodeList nodes = document.getElementsByTagName("plugins");
         if (nodes.getLength() == 0)

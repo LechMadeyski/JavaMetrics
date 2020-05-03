@@ -22,7 +22,7 @@ public class GitDownloader {
     private String outputDirectory = DEFAULT_OUTPUT_REPOSITORY_DIR;
 
     static {
-        DEFAULT_OUTPUT_REPOSITORY_DIR = System.getProperty("user.home") + "/java-metrics-source-repos";
+        DEFAULT_OUTPUT_REPOSITORY_DIR = System.getProperty("user.home") + File.separator + "java-metrics-source-repos";
     }
 
     public GitDownloader(String repositoryUri) {
@@ -35,14 +35,14 @@ public class GitDownloader {
     }
 
     public void setOutputDirectory(String outputDirectory) {
-        if (outputDirectory.endsWith("/"))
+        if (outputDirectory.endsWith(File.separator))
             outputDirectory = outputDirectory.substring(0, outputDirectory.length() - 2);
         this.outputDirectory = outputDirectory;
     }
 
     public void checkout() {
         String repositoryName = getRepositoryName(repositoryUri);
-        String outputPath = this.outputDirectory + "/" + repositoryName;
+        String outputPath = this.outputDirectory + File.separator + repositoryName;
         if (this.hash != null && !this.hash.isEmpty())
             outputPath = outputPath + "-" + this.hash;
 
@@ -115,6 +115,14 @@ public class GitDownloader {
         baseRepositoryPath = (new File(baseRepositoryPath)).getAbsolutePath();
 
         String baseRepositoryPathWithProtocol = LOCAL_REPOSITORY_ADDRESS_PROTOCOL + baseRepositoryPath;
+        if (System.getProperty("os.name").startsWith("Windows")) {
+            String windowsBaseRepositoryPath = "";
+            if (! baseRepositoryPath.startsWith("/"))
+                windowsBaseRepositoryPath = "/" + baseRepositoryPath;
+
+            windowsBaseRepositoryPath = windowsBaseRepositoryPath.replace(File.separator, "/");
+            baseRepositoryPathWithProtocol = LOCAL_REPOSITORY_ADDRESS_PROTOCOL + windowsBaseRepositoryPath;
+        }
 
         Process process = new ProcessBuilder("git", "clone", "--depth", "1", baseRepositoryPathWithProtocol, shallowRepositoryPath).redirectErrorStream(true).start();
 

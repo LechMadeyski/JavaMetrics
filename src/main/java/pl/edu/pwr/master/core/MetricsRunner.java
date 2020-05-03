@@ -48,7 +48,7 @@ public class MetricsRunner {
 
             if (parseDependencies) {
                 boolean result = downloadMavenDependencies(p);
-                String absolutePathWithJars = MavenDependencyDownloader.DEFAULT_OUTPUT_DEPENDENCY_DIR + "/" + basename(p);
+                String absolutePathWithJars = MavenDependencyDownloader.DEFAULT_OUTPUT_DEPENDENCY_DIR + File.separator + basename(p);
                 if (!result) {
                     LOGGER.info("Dependency parsing failed for: " + p);
                     parseProject(p, outputFilename);
@@ -70,7 +70,7 @@ public class MetricsRunner {
 
             if (parseDependencies) {
                 boolean result = downloadMavenDependencies(p);
-                String absolutePathWithJars = MavenDependencyDownloader.DEFAULT_OUTPUT_DEPENDENCY_DIR + "/" + basename(p);
+                String absolutePathWithJars = MavenDependencyDownloader.DEFAULT_OUTPUT_DEPENDENCY_DIR + File.separator + basename(p);
                 if (!result) {
                     LOGGER.info("Dependency parsing failed for: " + p);
                     parseProject(p, outputFilename, input);
@@ -113,7 +113,7 @@ public class MetricsRunner {
         File f = new File(projectPath, "pom.xml");
         if (f.exists()) {
             MavenDependencyDownloader m = new MavenDependencyDownloader(projectPath,
-                    MavenDependencyDownloader.DEFAULT_OUTPUT_DEPENDENCY_DIR + "/" + basename(projectPath));
+                    MavenDependencyDownloader.DEFAULT_OUTPUT_DEPENDENCY_DIR + File.separator + basename(projectPath));
             try {
                 result = m.downloadDependencies();
             } catch (IOException | InterruptedException ex) {
@@ -125,11 +125,13 @@ public class MetricsRunner {
     }
 
     private String basename(String path) {
-        if (path.endsWith("/")) {
+        if (path.endsWith(File.separator)) {
             path = path.substring(0, path.length() - 1);
         }
 
         String[] split = path.split("/");
+        if (System.getProperty("os.name").startsWith("Windows"))
+            split = path.split("\\\\");
         return split[split.length - 1];
     }
 

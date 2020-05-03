@@ -115,7 +115,9 @@ public class MetricParser {
         try (Stream<Path> walk = Files.walk(Paths.get(projectPath))) {
 
             List<String> result = walk.filter(Files::isDirectory).map(Path::toString)
-                    .filter(f -> f.endsWith("src/main/java") || f.endsWith("src/test/java")).collect(Collectors.toList());
+                    .filter(f -> f.endsWith("src" + File.separator + "main" + File.separator + "java")
+                            || f.endsWith("src" + File.separator + "test" + File.separator + "java"))
+                    .collect(Collectors.toList());
 
             result.forEach(r -> {
                 LOGGER.info("Registering project package: " + r);

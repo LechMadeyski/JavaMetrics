@@ -20,7 +20,7 @@ public class MavenDependencyDownloader {
     public static final String DEFAULT_OUTPUT_DEPENDENCY_DIR;
 
     static {
-        DEFAULT_OUTPUT_DEPENDENCY_DIR = System.getProperty("user.home") + "/java-metrics-dependencies";
+        DEFAULT_OUTPUT_DEPENDENCY_DIR = System.getProperty("user.home") + File.separator + "java-metrics-dependencies";
     }
 
     private String pomPath;
@@ -41,7 +41,7 @@ public class MavenDependencyDownloader {
         PomXmlParser pomXmlParser = new PomXmlParser();
         boolean hasModifiedPom = false;
         try {
-            hasModifiedPom = pomXmlParser.parsePom(pomPath + "/" + POM_NAME, outputPath);
+            hasModifiedPom = pomXmlParser.parsePom(pomPath + File.separator + POM_NAME, outputPath);
         }
         catch (ParserConfigurationException | SAXException e) {
             LOGGER.log(Level.SEVERE, e.getMessage(), e);
@@ -65,7 +65,7 @@ public class MavenDependencyDownloader {
 
         if (hasModifiedPom) {
             LOGGER.info("Moving pom.xml from backup...");
-            pomXmlParser.getPomFromBackup(pomPath + "/" + POM_NAME);
+            pomXmlParser.getPomFromBackup(pomPath + File.separator + POM_NAME);
         }
 
         return exitCode == 0;
