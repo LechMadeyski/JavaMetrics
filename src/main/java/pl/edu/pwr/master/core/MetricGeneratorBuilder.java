@@ -34,7 +34,9 @@ public class MetricGeneratorBuilder {
 
     private static final List<MetricStrategy> STRATEGIES_WITH_DEPENDENCY_RESOLUTION =
             new ArrayList<>(List.of(
-                    new AtfdMetric()
+                    new AtfdMetric(),
+                    new FdpMetric(),
+                    new LaaMetric()
                 )
             );
 

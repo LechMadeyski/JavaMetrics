@@ -48,9 +48,12 @@ public class MavenDependencyDownloader {
         }
 
         if (LOGGER.isLoggable(Level.INFO))
-            LOGGER.info("Downloading dependencies...");
+            LOGGER.info("Downloading dependencies to " + outputPath);
 
-        ProcessBuilder pb = new ProcessBuilder("mvn", "dependency:copy-dependencies", "-DoutputDirectory=" + outputPath);
+        String mvnCommand = "mvn";
+        if (System.getProperty("os.name").startsWith("Windows"))
+            mvnCommand = "mvn.cmd";
+        ProcessBuilder pb = new ProcessBuilder(mvnCommand, "dependency:copy-dependencies", "-DoutputDirectory=" + outputPath);
         pb.directory(new File(pomPath));
         pb.environment().put("MAVEN_OPTS", "-Xms512m -Xmx1024m");
         pb.redirectErrorStream(true);
