@@ -39,6 +39,9 @@ class ClassMetricStrategyTest {
                     })
     void getClassAccessorMethods(CompilationUnit cu, String[] expected) {
         AtomicInteger index = new AtomicInteger(0);
+        for (int i = 0; i < expected.length; i++) {
+            expected[i] = expected[i].replace("\n", System.getProperty("line.separator"));
+        }
         cu.findAll(ClassOrInterfaceDeclaration.class)
                 .forEach(c -> {
                     index.set(0);
