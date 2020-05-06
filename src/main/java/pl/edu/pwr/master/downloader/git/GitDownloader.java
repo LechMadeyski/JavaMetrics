@@ -4,6 +4,11 @@ import java.io.BufferedReader;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.nio.file.FileVisitResult;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.SimpleFileVisitor;
+import java.nio.file.attribute.BasicFileAttributes;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.regex.Matcher;
@@ -135,16 +140,33 @@ public class GitDownloader {
     }
 
     private void cleanUp(String repositoryPath) throws IOException, InterruptedException {
-        ProcessBuilder pb = new ProcessBuilder("rm", "-rf", repositoryPath);
+        Files.walkFileTree(Path.of(repositoryPath), new SimpleFileVisitor<>()
+        {
+            @Override
+            public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) throws IOException {
+                Files.delete(file);
+                return FileVisitResult.CONTINUE;
+            }
 
-        Process process = pb.start();
+            @Override
+            public FileVisitResult visitFileFailed(Path file, IOException exc) throws IOException {
+                Files.delete(file);
+                return FileVisitResult.CONTINUE;
+            }
 
-        showProcessLog(process);
+            @Override
+            public FileVisitResult postVisitDirectory(Path dir, IOException e) throws IOException {
+                if (e == null) {
+                    Files.delete(dir);
+                    return FileVisitResult.CONTINUE;
+                }
+                else
+                    throw e;
+            }
+        });
 
-        int exitCode = process.waitFor();
-        process.destroy();
         if (LOGGER.isLoggable(Level.INFO))
-            LOGGER.info(String.format("Removed full repository %s with exit code %d.", repositoryPath, exitCode));
+            LOGGER.info(String.format("Removed full repository %s.", repositoryPath));
     }
 
     private void showProcessLog(Process process) throws IOException {
