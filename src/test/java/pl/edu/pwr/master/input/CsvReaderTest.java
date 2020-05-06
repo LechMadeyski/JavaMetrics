@@ -16,7 +16,8 @@ public class CsvReaderTest {
 
     @BeforeAll
     static void setUp() {
-        String filePath = CsvReaderTest.class.getClassLoader().getResource(CSV_INPUT_TEST_FILE).getPath();
+        String filePath = CsvReaderTest.class.getClassLoader().getResource(CSV_INPUT_TEST_FILE).getPath().replace("%20", " ");
+
         Input input = CsvReader.getInputToParse(filePath);
 
         classes = input.getClasses();

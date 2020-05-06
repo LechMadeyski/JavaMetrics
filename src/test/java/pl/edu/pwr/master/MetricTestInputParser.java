@@ -20,7 +20,8 @@ class MetricTestInputParser {
 
     static CompilationUnit parse(String inputPath) throws ParseException, IOException {
         ClassLoader classLoader = MetricTestInputParser.class.getClassLoader();
-        File file = new File(Objects.requireNonNull(classLoader.getResource(inputPath)).getFile());
+        String inputFilePath = classLoader.getResource(inputPath).getPath().replace("%20", " ");
+        File file = new File(inputFilePath);
         return metricParser.parseFile(file);
     }
 
