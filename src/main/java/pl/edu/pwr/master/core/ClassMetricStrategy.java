@@ -1,5 +1,7 @@
 package pl.edu.pwr.master.core;
 
+import com.github.javaparser.ParseException;
+import com.github.javaparser.ParseResult;
 import com.github.javaparser.ast.AccessSpecifier;
 import com.github.javaparser.ast.CompilationUnit;
 import com.github.javaparser.ast.NodeList;
@@ -18,13 +20,22 @@ import com.github.javaparser.resolution.declarations.ResolvedDeclaration;
 import com.github.javaparser.resolution.declarations.ResolvedReferenceTypeDeclaration;
 import com.github.javaparser.resolution.declarations.ResolvedValueDeclaration;
 import pl.edu.pwr.master.config.Constants;
+import pl.edu.pwr.master.core.exception.JavaParserNotConfiguredException;
 import pl.edu.pwr.master.core.model.Metric;
 import pl.edu.pwr.master.core.model.MetricDetail;
+import pl.edu.pwr.master.metrics.visitors.AfferentCouplingVisitor;
+import pl.edu.pwr.master.metrics.visitors.EfferentCouplingVisitor;
 
-import java.util.List;
-import java.util.Optional;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.util.*;
 import java.util.function.Function;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 /**
  * Abstract class that should be extended to compute metrics for a class.
@@ -32,6 +43,8 @@ import java.util.stream.Collectors;
  * @param <T> Type of the metric value
  */
 public abstract class ClassMetricStrategy<T> implements MetricStrategy<T> {
+
+    private static final Logger LOGGER = Logger.getLogger(ClassMetricStrategy.class.getName());
     /**
      * Get list of metrics for a class
      *
@@ -77,6 +90,92 @@ public abstract class ClassMetricStrategy<T> implements MetricStrategy<T> {
                             .allMatch(n -> fieldNames.contains(n.getNameAsString()));
                 })
                 .collect(Collectors.toList());
+    }
+
+    /**
+     * Find class files containing the regex
+     *
+     * @param regex regular expression
+     * @return list of absolute file paths containing the regex
+     */
+    protected List<String> getClassFilesContaining(String regex) {
+        String projectPath = MetricParserUtil.getProjectPath();
+        List<String> result = new ArrayList<>();
+
+
+        try (Stream<Path> walk = Files.walk(Paths.get(projectPath))) {
+            walk.map(Path::toFile)
+                    .filter(f -> f.getName().endsWith(".java"))
+                    .forEach(f -> {
+                        try (Stream<String> stream = Files.lines(Paths.get(f.getAbsolutePath()))) {
+                            Optional<String> lineHavingTarget = stream.filter(l -> l.matches(regex)).findFirst();
+
+                            if (lineHavingTarget.isPresent()) {
+                                result.add(f.getAbsolutePath());
+                            }
+                        } catch (IOException e) {
+                            LOGGER.log(Level.SEVERE, e.getMessage(), e);
+                        }
+                    });
+        } catch (IOException e) {
+            LOGGER.log(Level.SEVERE, e.getMessage(), e);
+        }
+
+        return result;
+    }
+
+    /**
+     * Parse a file using the same parser configuration that was specified for the whole project.
+     * It is useful for metrics needing additional information about other classes (i. e. subclasses)
+     *
+     * @param fileName
+     * @return Javaparser AST CompilationUnit with the parsed file
+     * @throws IOException
+     * @throws ParseException
+     * @throws JavaParserNotConfiguredException
+     */
+    protected CompilationUnit parseFile(String fileName) throws IOException, ParseException, JavaParserNotConfiguredException {
+        ParseResult<CompilationUnit> parseResult = MetricParserUtil.getJavaParserInstance().parse(Paths.get(fileName));
+        if (parseResult.isSuccessful() && parseResult.getResult().isPresent()) {
+            return parseResult.getResult().get();
+        } else throw new ParseException(parseResult.getProblems().toString());
+    }
+
+    /**
+     * Get classes that depend upon a specified class (afferent coupling relationship)
+     *
+     * @param declaration class declaration that other classes should depend upon
+     * @return list of classes that depend upon the declaration
+     */
+    protected Set<ClassOrInterfaceDeclaration> getAfferentCouplingClasses(ClassOrInterfaceDeclaration declaration) {
+        Set<ClassOrInterfaceDeclaration> result = new HashSet<>();
+        List<String> classFilesUsingClassName = getClassFilesContaining(".*" + declaration.getNameAsString() + ".*");
+
+        Optional<String> declarationQualifiedName = declaration.getFullyQualifiedName();
+        if (declarationQualifiedName.isPresent()) {
+            classFilesUsingClassName.forEach(cf -> {
+                try {
+                    CompilationUnit cu = parseFile(cf);
+
+                    AfferentCouplingVisitor visitor = new AfferentCouplingVisitor(declaration);
+                    visitor.visit(cu, null);
+
+                    result.addAll(visitor.getResult());
+
+                }
+                catch (IOException | ParseException | JavaParserNotConfiguredException e) {
+                    LOGGER.log(Level.SEVERE, e.getMessage(), e);
+                }
+            });
+        }
+
+        return result;
+    }
+
+    protected Set<String> getEfferentCouplingClasses(ClassOrInterfaceDeclaration declaration) {
+        EfferentCouplingVisitor visitor = new EfferentCouplingVisitor();
+        visitor.visit(declaration, null);
+        return visitor.getResult();
     }
 
     /**

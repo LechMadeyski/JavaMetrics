@@ -24,11 +24,13 @@ public class MetricsRunner {
 
     public MetricsRunner(String input, String output, boolean parseDependencies) throws IOException, ParseException {
         this.parseDependencies = parseDependencies;
+        removeExistingOutputFile(output);
         this.metricSuite(input, output);
     }
 
     public MetricsRunner(String inputPath, String output, Input inputCsv, boolean parseDependencies) throws IOException, ParseException {
         this.parseDependencies = parseDependencies;
+        removeExistingOutputFile(output);
         this.metricSuite(inputPath, output, inputCsv);
     }
 
@@ -122,6 +124,15 @@ public class MetricsRunner {
         }
 
         return result;
+    }
+
+    private void removeExistingOutputFile(String fileName) {
+        try {
+            Files.delete(Paths.get(fileName));
+            LOGGER.info("Removed output file " + fileName);
+        } catch (IOException ex) {
+            LOGGER.log(Level.WARNING, ex.getMessage(), ex);
+        }
     }
 
     private String basename(String path) {
@@ -220,17 +231,6 @@ public class MetricsRunner {
             }
         }
     }
-
-    /*private ArrayList<String> getProjectPaths(String pathWithMultipleProjects) {
-
-        try (Stream<Path> walk = Files.walk(Paths.get(pathWithMultipleProjects))) {
-            walk.map(Path::toFile)
-                    .filter(f -> f.getName().endsWith(".java"))
-                    .forEach(this::tryToParse);
-        } catch (IOException e) {
-            LOGGER.severe(e.getMessage());
-        }
-    }*/
 
     private MetricGenerator prepareMetricGeneratorNoDeps() {
         return new MetricGeneratorBuilder()

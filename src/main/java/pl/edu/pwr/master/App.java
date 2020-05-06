@@ -100,6 +100,8 @@ public class App {
         } catch (com.github.javaparser.ParseException ex) {
             LOGGER.severe("Parsing a file failed.  Reason: " + ex.getMessage());
         }
+
+        LOGGER.info("Done!");
     }
 
     private static void printHelp(Options options) {

@@ -1,11 +1,12 @@
 package pl.edu.pwr.master.core;
 
-import pl.edu.pwr.master.metrics.ck.WmcMetric;
-import pl.edu.pwr.master.metrics.ck.WmcnammMetric;
+import pl.edu.pwr.master.metrics.ck.*;
 import pl.edu.pwr.master.metrics.general.*;
+import pl.edu.pwr.master.metrics.martin.CaMetric;
+import pl.edu.pwr.master.metrics.martin.CeMetric;
+import pl.edu.pwr.master.metrics.qmood.*;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 
 public class MetricGeneratorBuilder {
@@ -28,15 +29,26 @@ public class MetricGeneratorBuilder {
                     new NopvMetric(),
                     new WmcMetric(),
                     new WmcnammMetric(),
-                    new WocMetric()
-                )
+                    new WocMetric(),
+                    new NpmMetric()
+            )
             );
 
     private static final List<MetricStrategy> STRATEGIES_WITH_DEPENDENCY_RESOLUTION =
             new ArrayList<>(List.of(
                     new AtfdMetric(),
-                    new FdpMetric(),
-                    new LaaMetric()
+                    new NocMetric(),
+                    new DitMetric(),
+                    new RfcMetric(),
+                    new CboMetric(),
+                    new LcomMetric(),
+                    new CbomzMetric(),
+                    new DamMetric(),
+                    new MoaMetric(),
+                    new MfaMetric(),
+                    new CamMetric(),
+                    new CeMetric(),
+                    new CaMetric()
                 )
             );
 

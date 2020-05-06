@@ -5,6 +5,7 @@ import com.github.javaparser.ParseException;
 import com.github.javaparser.ParseResult;
 import com.github.javaparser.ParserConfiguration;
 import com.github.javaparser.ast.CompilationUnit;
+import com.github.javaparser.resolution.UnsolvedSymbolException;
 import com.github.javaparser.symbolsolver.JavaSymbolSolver;
 import com.github.javaparser.symbolsolver.model.resolution.TypeSolver;
 import com.github.javaparser.symbolsolver.resolution.typesolvers.CombinedTypeSolver;
@@ -43,6 +44,8 @@ public class MetricParser {
         this.metricGenerator = null;
         this.csvReporter = new CsvReporter();
         this.input = getEmptyInput();
+
+        MetricParserUtil.setup(javaParser.getParserConfiguration(), "");
     }
 
     public MetricParser(MetricGenerator metricGenerator, String projectPath, String outputFilename) {
@@ -50,6 +53,8 @@ public class MetricParser {
         this.csvReporter = new CsvReporter(outputFilename);
         this.javaParser = prepareParser(projectPath);
         this.input = getEmptyInput();
+
+        MetricParserUtil.setup(javaParser.getParserConfiguration(), projectPath);
     }
 
     public MetricParser(MetricGenerator metricGenerator, String projectPath, String dependencyPath, String outputFilename) {
@@ -57,6 +62,8 @@ public class MetricParser {
         this.csvReporter = new CsvReporter(outputFilename);
         this.javaParser = prepareParser(projectPath, dependencyPath);
         this.input = getEmptyInput();
+
+        MetricParserUtil.setup(javaParser.getParserConfiguration(), projectPath);
     }
 
     public MetricParser(MetricGenerator metricGenerator, String projectPath, String outputFilename, Input input) {
@@ -64,6 +71,8 @@ public class MetricParser {
         this.csvReporter = new CsvReporter(outputFilename);
         this.javaParser = prepareParser(projectPath);
         this.input = input;
+
+        MetricParserUtil.setup(javaParser.getParserConfiguration(), projectPath);
     }
 
     public MetricParser(MetricGenerator metricGenerator, String projectPath, String dependencyPath, String outputFilename, Input input) {
@@ -71,6 +80,8 @@ public class MetricParser {
         this.csvReporter = new CsvReporter(outputFilename);
         this.javaParser = prepareParser(projectPath, dependencyPath);
         this.input = input;
+
+        MetricParserUtil.setup(javaParser.getParserConfiguration(), projectPath);
     }
 
     private JavaParser prepareParser() {
@@ -203,17 +214,19 @@ public class MetricParser {
 
     private void tryToParse(File file) {
         LOGGER.info("Trying to parse " + file.getPath());
+
         try {
             CompilationUnit compilationUnit = parseFile(file);
 
             List<Metric> metrics = this.metricGenerator.compute(compilationUnit);
             String projectName = Optional.of(file.getParent()).orElse("");
             this.csvReporter.writeMetrics(projectName, metrics, metricGenerator.getMetricStrategyNames(), this.input);
-
-        } catch (FileNotFoundException | ParseException e) {
+        } catch (FileNotFoundException | ParseException e) { // Use catch Exception to filter out all faulty records
             LOGGER.severe(e.getMessage());
         }
+
     }
+
 
     public CompilationUnit parseFile(File file) throws FileNotFoundException, ParseException {
         ParseResult<CompilationUnit> parseResult = this.javaParser.parse(file);
