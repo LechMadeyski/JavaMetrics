@@ -37,6 +37,12 @@ public class MetricsRunner {
     public void metricSuite(String path, String outputFilename) throws IOException, ParseException {
         List<String> projectPaths = new ArrayList<>();
 
+        if (isFile(path)) {
+            LOGGER.info("Provided a single file: " + path +", parsing without dependencies!");
+            parseProject(path, outputFilename);
+            return;
+        }
+
         if (containsOnlyJavaFiles(path)) {
             projectPaths.add(path);
         }
@@ -66,6 +72,12 @@ public class MetricsRunner {
     public void metricSuite(String path, String outputFilename, Input input) throws IOException, ParseException {
         List<String> projectPaths = getProjectPaths(path);
 
+        if (isFile(path)) {
+            LOGGER.info("Provided a single file: " + path +", parsing without dependencies!");
+            parseProject(path, outputFilename);
+            return;
+        }
+
         for (String p : projectPaths) {
 
             LOGGER.info("Parsing project: " + p);
@@ -83,6 +95,11 @@ public class MetricsRunner {
                 parseProject(p, outputFilename, input);
             }
         }
+    }
+
+    private boolean isFile(String path) {
+        File f = new File(path);
+        return f.exists() && !f.isDirectory();
     }
 
     private void parseProject(String projectPath, String outputFilename) throws ParseException, IOException {
@@ -131,7 +148,7 @@ public class MetricsRunner {
             Files.delete(Paths.get(fileName));
             LOGGER.info("Removed output file " + fileName);
         } catch (IOException ex) {
-            LOGGER.log(Level.WARNING, ex.getMessage(), ex);
+            LOGGER.log(Level.WARNING, "cannot remove: " + fileName);
         }
     }
 

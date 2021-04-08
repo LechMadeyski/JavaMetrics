@@ -192,7 +192,7 @@ public class MetricParser {
         } else if (file.isDirectory()) {
             this.parseDirectory(path);
         } else {
-            this.parseFile(file);
+            this.tryToParse(file);
         }
     }
 
