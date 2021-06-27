@@ -7,6 +7,7 @@ import pl.edu.pwr.master.downloader.git.GitDownloader;
 import pl.edu.pwr.master.input.CsvReader;
 import pl.edu.pwr.master.input.Input;
 
+import java.io.File;
 import java.io.IOException;
 import java.util.Map;
 import java.util.Set;
@@ -87,7 +88,7 @@ public class App {
                 parseDependencies = true;
 
             if (line.hasOption(CSV_OPTION)) {
-                Input input = CsvReader.getInputToParse(line.getOptionValue(CSV_OPTION));
+                Input input = CsvReader.getInputToParse(new File(line.getOptionValue(CSV_OPTION)));
                 new MetricsRunner(inputPath,
                         line.getOptionValue(OUTPUT_FILE_OPTION, "output.csv"), input, parseDependencies);
             } else {

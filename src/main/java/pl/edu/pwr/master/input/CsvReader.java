@@ -3,6 +3,7 @@ package pl.edu.pwr.master.input;
 import org.apache.commons.csv.CSVFormat;
 import org.apache.commons.csv.CSVRecord;
 
+import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
 import java.io.Reader;
@@ -23,14 +24,14 @@ public class CsvReader {
     /**
      * Gets input from the CSV file to be parsed. Looks for an input in columns 'type' and 'code_name'.
      *
-     * @param inputPath path to the CSV file
+     * @param input CSV file
      * @return Methods and classes to be parsed
      */
-    public static Input getInputToParse(String inputPath) {
+    public static Input getInputToParse(File input) {
         Set<ClassInput> classes = new LinkedHashSet<>();
         Set<MethodInput> methods = new LinkedHashSet<>();
 
-        try (Reader in = new FileReader(inputPath)) {
+        try (Reader in = new FileReader(input)) {
             Iterable<CSVRecord> records = CSVFormat.DEFAULT
                     .withHeader(CsvHeaders.class).withSkipHeaderRecord().parse(in);
 
