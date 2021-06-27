@@ -4,6 +4,9 @@ import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
 
+import java.io.File;
+import java.net.URISyntaxException;
+import java.net.URL;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -15,11 +18,11 @@ public class CsvReaderTest {
     private static List<MethodInput> methods;
 
     @BeforeAll
-    static void setUp() {
-        String filePath = CsvReaderTest.class.getClassLoader().getResource(CSV_INPUT_TEST_FILE).getPath().replace("%20", " ");
+    static void setUp() throws URISyntaxException {
+        URL url = CsvReaderTest.class.getClassLoader().getResource(CSV_INPUT_TEST_FILE);
 
-        Input input = CsvReader.getInputToParse(filePath);
-
+        assert url != null;
+        Input input = CsvReader.getInputToParse(new File(url.toURI()));
         classes = input.getClasses();
         methods = input.getMethods();
     }

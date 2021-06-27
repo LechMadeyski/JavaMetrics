@@ -6,6 +6,8 @@ import pl.edu.pwr.master.core.MetricParser;
 
 import java.io.File;
 import java.io.IOException;
+import java.net.URISyntaxException;
+import java.net.URL;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
@@ -18,10 +20,10 @@ class MetricTestInputParser {
 
     }
 
-    static CompilationUnit parse(String inputPath) throws ParseException, IOException {
+    static CompilationUnit parse(String inputPath) throws ParseException, IOException, URISyntaxException {
         ClassLoader classLoader = MetricTestInputParser.class.getClassLoader();
-        String inputFilePath = classLoader.getResource(inputPath).getPath().replace("%20", " ");
-        File file = new File(inputFilePath);
+        URL url = classLoader.getResource(inputPath);
+        File file = new File(url.toURI());
         return metricParser.parseFile(file);
     }
 
