@@ -1,0 +1,4 @@
+file,package,class,method
+/path/org/test/ClassA.java,org.test,ClassA,
+/path/org/test/Class.java,org.test,ClassA,method1
+/path/org/test/Class.java,org.test,ClassA,ClassA
